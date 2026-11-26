@@ -89,6 +89,8 @@ def refresh_access_token(refresh_token):
 
 def validate_refresh_user(refresh):
     """Ensure the token belongs to an active user."""
-    user_id = refresh['user_id']
+    user_id = refresh.get('user_id')
+    if not user_id:
+        raise TokenError("Token has no user ID.")
     if not User.objects.filter(id=user_id, is_active=True).exists():
         raise TokenError("User is not active or does not exist.")
