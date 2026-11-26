@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
@@ -38,3 +38,28 @@ class RegisterSerializer(serializers.ModelSerializer):
         """Create a user with a securely hashed password."""
         validated_data.pop('confirmed_password')
         return User.objects.create_user(**validated_data)
+
+
+class LoginSerializer(serializers.Serializer):
+    """Validate user login credentials."""
+
+    username = serializers.CharField()
+    password = serializers.CharField(
+        write_only=True,
+        trim_whitespace=False
+    )
+
+    def validate(self, attrs):
+        """Authenticate the user with the provided credentials."""
+        user = authenticate(
+            username=attrs['username'],
+            password=attrs['password']
+        )
+
+        if user is None:
+            raise serializers.ValidationError(
+                'Invalid username or password.'
+            )
+
+        attrs['user'] = user
+        return attrs
